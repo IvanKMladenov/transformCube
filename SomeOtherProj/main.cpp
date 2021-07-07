@@ -2,8 +2,8 @@
 #include <QSurfaceFormat>
 
 #include "mainwindow.h"
-#include "inputvectors.h"
-#include "drawimage.h"
+//#include "inputvectors.h"
+//#include "drawimage.h"
 
 int main (int argc, char *argv[]){
 
@@ -13,18 +13,10 @@ int main (int argc, char *argv[]){
     format.setDepthBufferSize(24);
     QSurfaceFormat::setDefaultFormat(format);
 
-#ifndef QT_NO_OPENGL
-    MainWindow widget;
-    widget.show();
-#else
-    QLabel note("OpenGL Support required");
-    note.show();
-#endif
-
     //InputVectors smt;
     //DrawImage smt;
-    //MainWindow smt;
+    MainWindow smt;
     //smt.resize(800,600);
-    //smt.show();
+    smt.show();
     return app.exec();
 }

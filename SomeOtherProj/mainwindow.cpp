@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-//#include "inputvectors.h"
 #include "ui_mainwindow.h"
 #include <iostream>
 
@@ -9,17 +8,22 @@ struct VertexData
     QVector2D texCoord;
 };
 
-MainWindow::MainWindow(QWidget *parent) :
-    QWidget(parent),
+MainWindow::MainWindow() :
     indexBuf(QOpenGLBuffer::IndexBuffer),
     ui(new Ui::MainWindow)
 {
+    std::cout << "MainWindow c'tor call" << std::endl;
     ui ->setupUi(this);
     //initializeOpenGLFunctions();
-    arrayBuf.create();
-    indexBuf.create();
+    //arrayBuf.create();
+    //indexBuf.create();
+    //initGeometryTest();
 
-    std::cout << "MainWindow c'tor" << std::endl;
+    m_inputData.resize(8 * sizeof(QVector3D));
+    m_meshData.resize(24 * sizeof(QVector3D));
+
+    //std::cout << "MainWindow DrawImage c'tor call" << std::endl;
+    //DrawImage *glLogic = new DrawImage(m_meshData, this);
 
     ui ->lineEdit_1 ->installEventFilter(this);
     ui ->lineEdit_2 ->installEventFilter(this);
@@ -65,16 +69,49 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::doSomethingStupid() {
-
+    std::cout << "doSomethingStupid" << std::endl;
     //smtVec ->drawGeometry();
+    initGeometryTest();
 
-    glLogic = new DrawImage(this);
-    drawGeometry(&glLogic->m_program);
+    for (int i = 0; i < m_meshData.size(); ++i) {
+        QString bb;
+        &bb << m_meshData[i];
+        ui ->debugWindow ->setPlainText(bb);
+        std::cout << m_meshData.size() << std::endl;
+        std::cout << m_inputData.size() << std::endl;
+    }
+
+    //DrawImage *glLogic = new DrawImage(m_meshData, this);
+    //std::cout << glLogic ->accessibleName().toStdString() << std::endl;
+    //drawGeometry(&glLogic ->m_program);
 
     //baligo = new DrawImage(this, this);
     //std::cout << smtVec->GetMesh().size() << std::endl;
     //baligo ->DramTheFuckingThing(*smtVec);
+}
 
+void MainWindow::initGeometryTest() {
+
+    m_meshData.push_back(m_inputData[0]);
+    m_meshData.push_back(m_inputData[1]);
+    m_meshData.push_back(m_inputData[2]);
+    m_meshData.push_back(m_inputData[3]);
+    m_meshData.push_back(m_inputData[1]);
+    m_meshData.push_back(m_inputData[4]);
+    m_meshData.push_back(m_inputData[3]);
+    m_meshData.push_back(m_inputData[5]);
+    m_meshData.push_back(m_inputData[4]);
+    m_meshData.push_back(m_inputData[6]);
+    m_meshData.push_back(m_inputData[5]);
+    m_meshData.push_back(m_inputData[7]);
+    m_meshData.push_back(m_inputData[6]);
+    m_meshData.push_back(m_inputData[0]);
+    m_meshData.push_back(m_inputData[7]);
+    m_meshData.push_back(m_inputData[2]);
+    m_meshData.push_back(m_inputData[6]);
+    m_meshData.push_back(m_inputData[4]);
+    m_meshData.push_back(m_inputData[0]);
+    m_meshData.push_back(m_inputData[1]);
 }
 
 void MainWindow::initGeometry()
@@ -87,43 +124,43 @@ void MainWindow::initGeometry()
 
     VertexData vertices[] = {
         // Vertex data for face 0
-        {m_meshVec[0], QVector2D(0.0f, 0.0f)},  // v0
-        {m_meshVec[1], QVector2D(0.33f, 0.0f)}, // v1
-        {m_meshVec[2], QVector2D(0.0f, 0.5f)},  // v2
-        {m_meshVec[3], QVector2D(0.33f, 0.5f)}, // v3
+        {m_inputData[0], QVector2D(0.0f, 0.0f)},  // v0
+        {m_inputData[1], QVector2D(0.33f, 0.0f)}, // v1
+        {m_inputData[2], QVector2D(0.0f, 0.5f)},  // v2
+        {m_inputData[3], QVector2D(0.33f, 0.5f)}, // v3
 
         // Vertex data for face 1
-        {m_meshVec[1], QVector2D( 0.0f, 0.5f)}, // v4
-        {m_meshVec[4], QVector2D(0.33f, 0.5f)}, // v5
-        {m_meshVec[3], QVector2D(0.0f, 1.0f)},  // v6
-        {m_meshVec[5], QVector2D(0.33f, 1.0f)}, // v7
+        {m_inputData[1], QVector2D( 0.0f, 0.5f)}, // v4
+        {m_inputData[4], QVector2D(0.33f, 0.5f)}, // v5
+        {m_inputData[3], QVector2D(0.0f, 1.0f)},  // v6
+        {m_inputData[5], QVector2D(0.33f, 1.0f)}, // v7
 
         // Vertex data for face 2
-        {m_meshVec[4], QVector2D(0.66f, 0.5f)}, // v8
-        {m_meshVec[6], QVector2D(1.0f, 0.5f)},  // v9
-        {m_meshVec[5], QVector2D(0.66f, 1.0f)}, // v10
-        {m_meshVec[7], QVector2D(1.0f, 1.0f)},  // v11
+        {m_inputData[4], QVector2D(0.66f, 0.5f)}, // v8
+        {m_inputData[6], QVector2D(1.0f, 0.5f)},  // v9
+        {m_inputData[5], QVector2D(0.66f, 1.0f)}, // v10
+        {m_inputData[7], QVector2D(1.0f, 1.0f)},  // v11
 
         // Vertex data for face 3
-        {m_meshVec[6], QVector2D(0.66f, 0.0f)}, // v12
-        {m_meshVec[0], QVector2D(1.0f, 0.0f)},  // v13
-        {m_meshVec[7], QVector2D(0.66f, 0.5f)}, // v14
-        {m_meshVec[2], QVector2D(1.0f, 0.5f)},  // v15
+        {m_inputData[6], QVector2D(0.66f, 0.0f)}, // v12
+        {m_inputData[0], QVector2D(1.0f, 0.0f)},  // v13
+        {m_inputData[7], QVector2D(0.66f, 0.5f)}, // v14
+        {m_inputData[2], QVector2D(1.0f, 0.5f)},  // v15
 
         // Vertex data for face 4
-        {m_meshVec[6], QVector2D(0.33f, 0.0f)}, // v16
-        {m_meshVec[4], QVector2D(0.66f, 0.0f)}, // v17
-        {m_meshVec[0], QVector2D(0.33f, 0.5f)}, // v18
-        {m_meshVec[1], QVector2D(0.66f, 0.5f)}, // v19
+        {m_inputData[6], QVector2D(0.33f, 0.0f)}, // v16
+        {m_inputData[4], QVector2D(0.66f, 0.0f)}, // v17
+        {m_inputData[0], QVector2D(0.33f, 0.5f)}, // v18
+        {m_inputData[1], QVector2D(0.66f, 0.5f)}, // v19
 
         // Vertex data for face 5
-        {m_meshVec[2], QVector2D(0.33f, 0.5f)}, // v20
-        {m_meshVec[3], QVector2D(0.66f, 0.5f)}, // v21
-        {m_meshVec[7], QVector2D(0.33f, 1.0f)}, // v22
-        {m_meshVec[5], QVector2D(0.66f, 1.0f)}  // v23
+        {m_inputData[2], QVector2D(0.33f, 0.5f)}, // v20
+        {m_inputData[3], QVector2D(0.66f, 0.5f)}, // v21
+        {m_inputData[7], QVector2D(0.33f, 1.0f)}, // v22
+        {m_inputData[5], QVector2D(0.66f, 1.0f)}  // v23
     };
 
-     std::cout << "initGeometry after init vertices" << std::endl;
+     //std::cout << "initGeometry after init vertices" << std::endl;
 
     // Indices for drawing cube faces using triangle strips.
     // Triangle strips can be connected by duplicating indices
@@ -132,25 +169,25 @@ void MainWindow::initGeometry()
     // index of the second strip needs to be duplicated. If
     // connecting strips have same vertex order then only last
     // index of the first strip needs to be duplicated.
-    GLushort indices[] = {
-         0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
-         4,  4,  5,  6,  7,  7, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
-         8,  8,  9, 10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
-        12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
-        16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
-        20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
-    };
+    //GLushort indices[] = {
+    //     0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
+    //     4,  4,  5,  6,  7,  7, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
+    //     8,  8,  9, 10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
+    //    12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
+    //    16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
+    //    20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
+    //};
 
     // Transfer vertex data to VBO 0
-    arrayBuf.bind();
-    arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
+    //arrayBuf.bind();
+    //arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
 
     // Transfer index data to VBO 1
-    indexBuf.bind();
-    indexBuf.allocate(indices, 34 * sizeof(GLushort));
+    //indexBuf.bind();
+    //indexBuf.allocate(indices, 34 * sizeof(GLushort));
 }
 
-void MainWindow::initGeometry1()
+void MainWindow::initGeometry1Bad()
 {
     // For cube we would need only 8 vertices but we have to
     // duplicate vertex for each face because texture coordinate
@@ -222,6 +259,7 @@ void MainWindow::initGeometry1()
 
 void MainWindow::drawGeometry(QOpenGLShaderProgram *program)
 {
+    std::cout << "drawGeometry" << std::endl;
     // Tell OpenGL which VBOs to use
     arrayBuf.bind();
     indexBuf.bind();
@@ -229,12 +267,9 @@ void MainWindow::drawGeometry(QOpenGLShaderProgram *program)
     // Offset for position
     quintptr offset = 0;
 
-    std::cout << "drawGeometry" << std::endl;
-
-    initGeometry();
-
     // Tell OpenGL programmable pipeline how to locate vertex position data
     int vertexLocation = program ->attributeLocation("a_position");
+    std::cout << vertexLocation << std::endl;
     program ->enableAttributeArray(vertexLocation);
     program ->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
 
@@ -243,6 +278,7 @@ void MainWindow::drawGeometry(QOpenGLShaderProgram *program)
 
     // Tell OpenGL programmable pipeline how to locate vertex texture coordinate data
     int texcoordLocation = program->attributeLocation("a_texcoord");
+    std::cout << texcoordLocation << std::endl;
     program ->enableAttributeArray(texcoordLocation);
     program ->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
@@ -253,57 +289,57 @@ void MainWindow::drawGeometry(QOpenGLShaderProgram *program)
 void MainWindow::pushMeshVal1() {
     auto smt = ui ->lineEdit_1 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal2() {
     auto smt = ui ->lineEdit_2 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal3() {
     auto smt = ui ->lineEdit_3 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal4() {
     auto smt = ui ->lineEdit_4 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal5() {
     auto smt = ui ->lineEdit_5 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal6() {
     auto smt = ui ->lineEdit_6 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal7() {
     auto smt = ui ->lineEdit_7 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 void MainWindow::pushMeshVal8() {
     auto smt = ui ->lineEdit_8 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    //smtVec.normalize();
-    m_meshVec.push_back(smtVec);
+    smtVec.normalize();
+    m_inputData.push_back(smtVec);
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {

@@ -12,16 +12,17 @@ struct VertexData
     QVector2D texCoord;
 };
 
-InputVectors::InputVectors(QWidget *parent) :
-    QWidget(parent),
+InputVectors::InputVectors() :
     indexBuf(QOpenGLBuffer::IndexBuffer),
     ui(new Ui::MainWindow)
 {
-    //initializeOpenGLFunctions();
+    initializeOpenGLFunctions();
+
     arrayBuf.create();
     indexBuf.create();
 
-    std::cout << "blq blq" << std::endl;
+    std::cout << "initGeometry1" << std::endl;
+    initGeometry1();
 
     ui ->setupUi(this);
     ui ->lineEdit_1 ->installEventFilter(this);
@@ -64,7 +65,7 @@ InputVectors::~InputVectors() {
     delete ui;
 }
 
-void InputVectors::initGeometry1()
+void InputVectors::initGeometry()
 {
     // For cube we would need only 8 vertices but we have to
     // duplicate vertex for each face because texture coordinate
@@ -74,40 +75,40 @@ void InputVectors::initGeometry1()
 
     VertexData vertices[] = {
         // Vertex data for face 0
-        {meshVec[0], QVector2D(0.0f, 0.0f)},  // v0
-        {meshVec[1], QVector2D(0.33f, 0.0f)}, // v1
-        {meshVec[2], QVector2D(0.0f, 0.5f)},  // v2
-        {meshVec[3], QVector2D(0.33f, 0.5f)}, // v3
+        {m_meshVec[0], QVector2D(0.0f, 0.0f)},  // v0
+        {m_meshVec[1], QVector2D(0.33f, 0.0f)}, // v1
+        {m_meshVec[2], QVector2D(0.0f, 0.5f)},  // v2
+        {m_meshVec[3], QVector2D(0.33f, 0.5f)}, // v3
 
         // Vertex data for face 1
-        {meshVec[1], QVector2D( 0.0f, 0.5f)}, // v4
-        {meshVec[4], QVector2D(0.33f, 0.5f)}, // v5
-        {meshVec[3], QVector2D(0.0f, 1.0f)},  // v6
-        {meshVec[5], QVector2D(0.33f, 1.0f)}, // v7
+        {m_meshVec[1], QVector2D( 0.0f, 0.5f)}, // v4
+        {m_meshVec[4], QVector2D(0.33f, 0.5f)}, // v5
+        {m_meshVec[3], QVector2D(0.0f, 1.0f)},  // v6
+        {m_meshVec[5], QVector2D(0.33f, 1.0f)}, // v7
 
         // Vertex data for face 2
-        {meshVec[4], QVector2D(0.66f, 0.5f)}, // v8
-        {meshVec[6], QVector2D(1.0f, 0.5f)},  // v9
-        {meshVec[5], QVector2D(0.66f, 1.0f)}, // v10
-        {meshVec[7], QVector2D(1.0f, 1.0f)},  // v11
+        {m_meshVec[4], QVector2D(0.66f, 0.5f)}, // v8
+        {m_meshVec[6], QVector2D(1.0f, 0.5f)},  // v9
+        {m_meshVec[5], QVector2D(0.66f, 1.0f)}, // v10
+        {m_meshVec[7], QVector2D(1.0f, 1.0f)},  // v11
 
         // Vertex data for face 3
-        {meshVec[6], QVector2D(0.66f, 0.0f)}, // v12
-        {meshVec[0], QVector2D(1.0f, 0.0f)},  // v13
-        {meshVec[7], QVector2D(0.66f, 0.5f)}, // v14
-        {meshVec[2], QVector2D(1.0f, 0.5f)},  // v15
+        {m_meshVec[6], QVector2D(0.66f, 0.0f)}, // v12
+        {m_meshVec[0], QVector2D(1.0f, 0.0f)},  // v13
+        {m_meshVec[7], QVector2D(0.66f, 0.5f)}, // v14
+        {m_meshVec[2], QVector2D(1.0f, 0.5f)},  // v15
 
         // Vertex data for face 4
-        {meshVec[6], QVector2D(0.33f, 0.0f)}, // v16
-        {meshVec[4], QVector2D(0.66f, 0.0f)}, // v17
-        {meshVec[0], QVector2D(0.33f, 0.5f)}, // v18
-        {meshVec[1], QVector2D(0.66f, 0.5f)}, // v19
+        {m_meshVec[6], QVector2D(0.33f, 0.0f)}, // v16
+        {m_meshVec[4], QVector2D(0.66f, 0.0f)}, // v17
+        {m_meshVec[0], QVector2D(0.33f, 0.5f)}, // v18
+        {m_meshVec[1], QVector2D(0.66f, 0.5f)}, // v19
 
         // Vertex data for face 5
-        {meshVec[2], QVector2D(0.33f, 0.5f)}, // v20
-        {meshVec[3], QVector2D(0.66f, 0.5f)}, // v21
-        {meshVec[7], QVector2D(0.33f, 1.0f)}, // v22
-        {meshVec[5], QVector2D(0.66f, 1.0f)}  // v23
+        {m_meshVec[2], QVector2D(0.33f, 0.5f)}, // v20
+        {m_meshVec[3], QVector2D(0.66f, 0.5f)}, // v21
+        {m_meshVec[7], QVector2D(0.33f, 1.0f)}, // v22
+        {m_meshVec[5], QVector2D(0.66f, 1.0f)}  // v23
     };
 
      std::cout << "initGeometry after init vertices" << std::endl;
@@ -137,7 +138,7 @@ void InputVectors::initGeometry1()
     indexBuf.allocate(indices, 34 * sizeof(GLushort));
 }
 
-void InputVectors::initGeometry()
+void InputVectors::initGeometry1()
 {
     // For cube we would need only 8 vertices but we have to
     // duplicate vertex for each face because texture coordinate
@@ -210,6 +211,7 @@ void InputVectors::initGeometry()
 
 void InputVectors::drawGeometry(QOpenGLShaderProgram *program)
 {
+    //initGeometry();
     // Tell OpenGL which VBOs to use
     arrayBuf.bind();
     indexBuf.bind();
@@ -218,8 +220,6 @@ void InputVectors::drawGeometry(QOpenGLShaderProgram *program)
     quintptr offset = 0;
 
     std::cout << "drawGeometry" << std::endl;
-
-    initGeometry();
 
     // Tell OpenGL programmable pipeline how to locate vertex position data
     int vertexLocation = program->attributeLocation("a_position");
@@ -242,9 +242,9 @@ void InputVectors::doSomethingStupid() {
 
     std::cout << "doSomethingStupid" << std::endl;
 
-    for (int i = 0; i < meshVec.size(); ++i) {
+    for (int i = 0; i < m_meshVec.size(); ++i) {
         QString bb;
-        &bb << meshVec[i];
+        &bb << m_meshVec[i];
         std::cout << bb.toStdString() << std::endl;
         ui ->debugWindow ->insertPlainText(bb);
     }
@@ -254,56 +254,56 @@ void InputVectors::pushMeshVal1() {
     auto smt = ui ->lineEdit_1 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal2() {
     auto smt = ui ->lineEdit_2 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal3() {
     auto smt = ui ->lineEdit_3 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal4() {
     auto smt = ui ->lineEdit_4 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal5() {
     auto smt = ui ->lineEdit_5 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal6() {
     auto smt = ui ->lineEdit_6 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal7() {
     auto smt = ui ->lineEdit_7 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 void InputVectors::pushMeshVal8() {
     auto smt = ui ->lineEdit_8 ->text().splitRef(QLatin1Char(','));
     QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
     //smtVec.normalize();
-    meshVec.push_back(smtVec);
+    m_meshVec.push_back(smtVec);
 }
 
 bool InputVectors::eventFilter(QObject *watched, QEvent *event) {

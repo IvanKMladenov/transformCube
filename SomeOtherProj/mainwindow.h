@@ -5,7 +5,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
-//#include "inputvectors.h"
+
 #include "drawimage.h"
 //#include "ui_mainwindow.h"
 
@@ -17,7 +17,7 @@ class MainWindow : public QWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow();
     ~MainWindow();
 
     void editingFinished (const QString &string);
@@ -25,7 +25,9 @@ public:
     void drawGeometry(QOpenGLShaderProgram *program);
     void doSomethingStupid ();
 
-    QVector<QVector3D> GetMesh() { return m_meshVec; }
+    const QVector3D *constData() const { return m_meshData.constData(); }
+
+    //QVector<QVector3D> GetMesh() { return m_meshVec; }
 
 protected slots:
     bool eventFilter(QObject *obj, QEvent *event);
@@ -38,16 +40,15 @@ protected slots:
     void pushMeshVal7();
     void pushMeshVal8();
 private:
-    void initGeometry1();
+    void initGeometry1Bad();
     void initGeometry();
+    void initGeometryTest();
 private:
-    //InputVectors* smtVec;
-
     QOpenGLBuffer arrayBuf;
     QOpenGLBuffer indexBuf;
 
-    DrawImage* glLogic;
-    QVector<QVector3D> m_meshVec;
+    QVector<QVector3D> m_inputData;
+    QVector<QVector3D> m_meshData;
     Ui::MainWindow *ui;
 };
 

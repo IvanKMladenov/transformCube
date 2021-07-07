@@ -17,7 +17,7 @@ class InputVectors : public QWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
-    explicit InputVectors(QWidget *parent = 0);
+    InputVectors();
     virtual ~InputVectors();
 
     void editingFinished (const QString &string);
@@ -25,7 +25,7 @@ public:
     void drawGeometry(QOpenGLShaderProgram *program);
     void doSomethingStupid ();
 
-    QVector<QVector3D> GetMesh() { return meshVec; }
+    //QVector<QVector3D> GetMesh() { return meshVec; }
 
 protected slots:
     bool eventFilter(QObject *obj, QEvent *event);
@@ -42,7 +42,7 @@ private:
     void initGeometry();
 private:
 
-    QVector<QVector3D> meshVec;
+    QVector<QVector3D> m_meshVec;
 
     QOpenGLBuffer arrayBuf;
     QOpenGLBuffer indexBuf;

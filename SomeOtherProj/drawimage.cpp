@@ -1,94 +1,209 @@
 #include "drawimage.h"
 #include <iostream>
 
+#include <QMouseEvent>
+#include <QOpenGLShaderProgram>
+#include <QCoreApplication>
+#include <math.h>
+
 DrawImage::DrawImage (QWidget *parent)
     : QOpenGLWidget (parent)
 {
+    m_mesh.resize(24 * sizeof(QVector3D));
     std::cout << "DrawImage c'tor" << std::endl;
+    m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 }
 
-//DrawImage::DrawImage(MainWindow* meshVec, QWidget *parent)
-//    : QOpenGLWidget (parent),
-//      meshVectors(meshVec)
+DrawImage::DrawImage ( QVector<QVector3D> meshVec, QWidget *parent)
+    : QOpenGLWidget (parent),
+      m_mesh(meshVec)
+{
+    m_mesh.resize(24 * sizeof(QVector3D));
+    std::cout << "DrawImage c'tor with mesh" << std::endl;
+    m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
+}
+
+//DrawImage::DrawImage(MainWindow* geometries)
+//    : m_geometries(geometries)
 //{
 //}
 
 DrawImage::~DrawImage() {
+    cleanup();
+}
+
+void DrawImage::cleanup() {
+    if (m_program == nullptr) {
+        return;
+    }
     makeCurrent();
-    delete texture;
-    //delete meshVectors;
+    m_meshVbo.destroy();
+    delete m_program;
+    m_program = nullptr;
     doneCurrent();
 }
+
+static void qNormalizeAngle(int &angle) {
+    while (angle < 0)
+        angle += 360 * 16;
+    while (angle > 360 * 16)
+        angle -= 360 * 16;
+}
+
+void DrawImage::setXRotation(int angle) {
+    qNormalizeAngle(angle);
+    if (angle != m_xRot) {
+        m_xRot = angle;
+        emit xRotationChanged(angle);
+        update();
+    }
+}
+
+void DrawImage::setYRotation(int angle) {
+    qNormalizeAngle(angle);
+    if (angle != m_yRot) {
+        m_yRot = angle;
+        emit yRotationChanged(angle);
+        update();
+    }
+}
+
+void DrawImage::setZRotation(int angle) {
+    qNormalizeAngle(angle);
+    if (angle != m_zRot) {
+        m_zRot = angle;
+        emit zRotationChanged(angle);
+        update();
+    }
+}
+
+static const char *vertexShaderSourceCore =
+    "#version 150\n"
+    "in vec4 vertex;\n"
+    "in vec3 normal;\n"
+    "out vec3 vert;\n"
+    "out vec3 vertNormal;\n"
+    "uniform mat4 projMatrix;\n"
+    "uniform mat4 mvMatrix;\n"
+    "uniform mat3 normalMatrix;\n"
+    "void main() {\n"
+    "   vert = vertex.xyz;\n"
+    "   vertNormal = normalMatrix * normal;\n"
+    "   gl_Position = projMatrix * mvMatrix * vertex;\n"
+    "}\n";
+
+static const char *fragmentShaderSourceCore =
+    "#version 150\n"
+    "in highp vec3 vert;\n"
+    "in highp vec3 vertNormal;\n"
+    "out highp vec4 fragColor;\n"
+    "uniform highp vec3 lightPos;\n"
+    "void main() {\n"
+    "   highp vec3 L = normalize(lightPos - vert);\n"
+    "   highp float NL = max(dot(normalize(vertNormal), L), 0.0);\n"
+    "   highp vec3 color = vec3(0.39, 1.0, 0.0);\n"
+    "   highp vec3 col = clamp(color * 0.2 + color * 0.8 * NL, 0.0, 1.0);\n"
+    "   fragColor = vec4(col, 1.0);\n"
+    "}\n";
+
+static const char *vertexShaderSource =
+    "attribute vec4 vertex;\n"
+    "attribute vec3 normal;\n"
+    "varying vec3 vert;\n"
+    "varying vec3 vertNormal;\n"
+    "uniform mat4 projMatrix;\n"
+    "uniform mat4 mvMatrix;\n"
+    "uniform mat3 normalMatrix;\n"
+    "void main() {\n"
+    "   vert = vertex.xyz;\n"
+    "   vertNormal = normalMatrix * normal;\n"
+    "   gl_Position = projMatrix * mvMatrix * vertex;\n"
+    "}\n";
+
+static const char *fragmentShaderSource =
+    "varying highp vec3 vert;\n"
+    "varying highp vec3 vertNormal;\n"
+    "uniform highp vec3 lightPos;\n"
+    "void main() {\n"
+    "   highp vec3 L = normalize(lightPos - vert);\n"
+    "   highp float NL = max(dot(normalize(vertNormal), L), 0.0);\n"
+    "   highp vec3 color = vec3(0.39, 1.0, 0.0);\n"
+    "   highp vec3 col = clamp(color * 0.2 + color * 0.8 * NL, 0.0, 1.0);\n"
+    "   gl_FragColor = vec4(col, 1.0);\n"
+    "}\n";
 
 void DrawImage::initializeGL() {
 
     std::cout << "initializeGL" << std::endl;
+    // In this example the widget's corresponding top-level window can change
+    // several times during the widget's lifetime. Whenever this happens, the
+    // QOpenGLWidget's associated context is destroyed and a new one is created.
+    // Therefore we have to be prepared to clean up the resources on the
+    // aboutToBeDestroyed() signal, instead of the destructor. The emission of
+    // the signal will be followed by an invocation of initializeGL() where we
+    // can recreate all resources.
+    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &DrawImage::cleanup);
+
+    std::cout << "initializeGL after connect" << std::endl;
+    initializeOpenGLFunctions();
 
     float r, g, b, a = normalize_0_1(255.0f, 1.0f, 255.0f);
-    initializeOpenGLFunctions();
     qColorToRgb(Qt::red, r, g, b);
     glClearColor(r, g, b, a);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHTING);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
 
     std::cout << "init shaders" << std::endl;
-    initShaders();
-    //initTextures();
+    m_program = new QOpenGLShaderProgram;
+    m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, m_core ? vertexShaderSourceCore : vertexShaderSource);
+    m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, m_core ? fragmentShaderSourceCore : fragmentShaderSource);
+    m_program->bindAttributeLocation("vertex", 0);
+    m_program->bindAttributeLocation("normal", 1);
+    m_program->link();
 
-    // Use QBasicTimer because its faster than QTimer
-    //timer.start(12, this);
+    m_program->bind();
+    m_projMatrixLoc = m_program->uniformLocation("projMatrix");
+    m_mvMatrixLoc = m_program->uniformLocation("mvMatrix");
+    m_normalMatrixLoc = m_program->uniformLocation("normalMatrix");
+    m_lightPosLoc = m_program->uniformLocation("lightPos");
+
+    // Create a vertex array object. In OpenGL ES 2.0 and OpenGL 2.x
+    // implementations this is optional and support may not be present
+    // at all. Nonetheless the below code works in all cases and makes
+    // sure there is a VAO when one is needed.
+    m_vao.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+
+    // Setup our vertex buffer object.
+    m_meshVbo.create();
+    m_meshVbo.bind();
+    std::cout << m_mesh.size() << std::endl;
+    m_meshVbo.allocate(m_mesh.constData(), 204 * sizeof(QVector3D));
+    std::cout << m_meshVbo.size() << std::endl;
+
+    // Store the vertex attribute bindings for the program.
+    setupVertexAttribs();
+
+    // Our camera never changes in this example.
+    m_camera.setToIdentity();
+    m_camera.translate(0, 0, -1);
+
+    // Light position is fixed.
+    m_program->setUniformValue(m_lightPosLoc, QVector3D(0, 0, 70));
+
+
+    m_program->release();
 }
 
-void DrawImage::initShaders() {
-
-    std::cout << "initShaders" << std::endl;
-
-    const char *vsrc =
-            "uniform mat4 mvp_matrix;\n"
-            "attribute vec4 a_position;\n"
-            "attribute vec2 a_texcoord;\n"
-            "varying vec2 v_texcoord;\n"
-            "void main()  \n"
-            "{   \n"
-            "  gl_Position = mvp_matrix * a_position;          \n"
-            "  v_texcoord = a_texcoord; \n"
-            "} \n";
-
-    const char *fsrc =
-            "uniform mediump vec4 color; \n"
-            "void main(void)\n"
-            "{\n"
-            "    gl_FragColor = color;\n"
-            "}\n";
-
-    m_program.addShaderFromSourceCode(QOpenGLShader::Vertex, vsrc);
-    m_program.addShaderFromSourceCode(QOpenGLShader::Fragment, fsrc);
-
-    m_program.bindAttributeLocation("a_position", 0);
-    m_program.bindAttributeLocation("a_Color", 1);
-
-    m_program.link();
-    m_program.bind();
-
-}
-
-void DrawImage::initTextures() {
-    // Load cube.png image
-    //texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
-
-    // Set nearest filtering mode for texture minification
-    texture ->setMinificationFilter(QOpenGLTexture::Nearest);
-
-    // Set bilinear filtering mode for texture magnification
-    texture ->setMagnificationFilter(QOpenGLTexture::Linear);
-
-    // Wrap texture coordinates by repeating
-    // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
-    texture ->setWrapMode(QOpenGLTexture::Repeat);
+void DrawImage::setupVertexAttribs()
+{
+    m_meshVbo.bind();
+    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    f ->glEnableVertexAttribArray(0);
+    f ->glEnableVertexAttribArray(1);
+    f ->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
+                             nullptr);
+    f ->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
+                             reinterpret_cast<void *>(3 * sizeof(GLfloat)));
+    m_meshVbo.release();
 }
 
 void DrawImage::paintGL() {
@@ -96,47 +211,42 @@ void DrawImage::paintGL() {
     std::cout << "paintGL" << std::endl;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
-    QColor color(0, 255, 0, 255);
+    std::cout << "paintGL enable plane options" << std::endl;
 
-    // Calculate model view transformation
-    QMatrix4x4 matrix;
-    matrix.translate(0.0, 0.0, -5.0);
-    matrix.rotate(rotation);
+    m_world.setToIdentity();
+    m_world.rotate(180.0f - (m_xRot / 16.0f), 1, 0, 0);
+    m_world.rotate(m_yRot / 16.0f, 0, 1, 0);
+    m_world.rotate(m_zRot / 16.0f, 0, 0, 1);
 
-    // Set modelview-projection matrix
-    m_program.setUniformValue("mvp_matrix", projection * matrix);
+    std::cout << "paintGL set world" << std::endl;
 
-    // Use texture unit 0 which contains cube.png
-    m_program.setUniformValue(m_program.uniformLocation("color"), color);
+    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    m_program->bind();
 
-    // Draw cube geometry
-    std::cout << "ba li mu mamata" << std::endl;
-    //meshVectors ->drawGeometry(&m_program);
+    std::cout << "paintGL bind m_program" << std::endl;
 
+    m_program->setUniformValue(m_projMatrixLoc, m_proj);
+    m_program->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
+    QMatrix3x3 normalMatrix = m_world.normalMatrix();
+    m_program->setUniformValue(m_normalMatrixLoc, normalMatrix);
+
+    std::cout << "paintGL before glDrawArrays" << std::endl;
+    std::cout << m_mesh.size() << std::endl;
+    if(m_mesh.size() != 0) {
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 24);
+        //glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, nullptr);
+    }
+    m_program ->release();
 }
 
 void DrawImage::resizeGL(int w, int h) {
 
     std::cout << "resizeGL" << std::endl;
-
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MATRIX_MODE);
-    glLoadIdentity();
-
-    // Calculate aspect ratio
-    qreal aspect = qreal(w) / qreal(h ? h : 1);
-
-    // Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
-    const qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
-
-    //// Reset projection
-    projection.setToIdentity();
-
-    // Set perspective projection
-    projection.perspective(fov, aspect, zNear, zFar);
+    m_proj.setToIdentity();
+    m_proj.perspective(45.0f, GLfloat(w) / h, 0.01f, 100.0f);
 }
 
 void DrawImage::qColorToRgb(const QColor &C, float &r, float &g, float &b) const {
