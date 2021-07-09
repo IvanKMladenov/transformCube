@@ -25,6 +25,7 @@ InputVectors::InputVectors() :
     initGeometry1();
 
     ui ->setupUi(this);
+#if 0
     ui ->lineEdit_1 ->installEventFilter(this);
     ui ->lineEdit_2 ->installEventFilter(this);
     ui ->lineEdit_3 ->installEventFilter(this);
@@ -33,7 +34,7 @@ InputVectors::InputVectors() :
     ui ->lineEdit_6 ->installEventFilter(this);
     ui ->lineEdit_7 ->installEventFilter(this);
     ui ->lineEdit_8 ->installEventFilter(this);
-
+#endif
     ui ->lineEdit_1 ->setText("Enter point e1");
     ui ->lineEdit_2 ->setText("Enter point e2");
     ui ->lineEdit_3 ->setText("Enter point e3");

@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <iostream>
+//ivz include the drawer here
+#include "drawimage.h"
 
 struct VertexData
 {
@@ -17,6 +19,9 @@ MainWindow::MainWindow() :
     //initializeOpenGLFunctions();
     //arrayBuf.create();
     //indexBuf.create();
+    m_pglContext = new DrawImage(this); // pass this to ctor to destroy it later...
+    // init gl from main widget
+    m_pglContext->initializeGL();// init your gl with this or something else fix the access
     initGeometryTest();
 
     m_inputData.resize(8 * sizeof(QVector3D));
@@ -27,6 +32,7 @@ MainWindow::MainWindow() :
     //std::cout << "MainWindow DrawImage c'tor call" << std::endl;
     //DrawImage *glLogic = new DrawImage(m_meshData, this);
 
+#if 0 //why is this installing event???
     ui ->lineEdit_1 ->installEventFilter(this);
     ui ->lineEdit_2 ->installEventFilter(this);
     ui ->lineEdit_3 ->installEventFilter(this);
@@ -35,7 +41,7 @@ MainWindow::MainWindow() :
     ui ->lineEdit_6 ->installEventFilter(this);
     ui ->lineEdit_7 ->installEventFilter(this);
     ui ->lineEdit_8 ->installEventFilter(this);
-
+#endif
     //ui ->lineEdit_1 ->setText("Enter point e1");
     //ui ->lineEdit_2 ->setText("Enter point e2");
     //ui ->lineEdit_3 ->setText("Enter point e3");
@@ -62,7 +68,7 @@ MainWindow::MainWindow() :
     //baligo = new DrawImage(this);
     //std::cout << "init InputVectors MainWidget" << smtVec->GetMesh().size() << std::endl;
     //connect( ui ->draw, &QPushButton::released, this, &MainWindow::doSomethingStupid);
-    connect(ui ->draw, SIGNAL(clicked()), this, SLOT(doSomethingStupid()));
+    connect(ui ->draw, SIGNAL(clicked()), this->m_pglContext, SLOT(CallDraw()));
 }
 
 MainWindow::~MainWindow() {
@@ -85,7 +91,12 @@ void MainWindow::doSomethingStupid() {
         //std::cout << m_inputData.size() << std::endl;
     }
 
-    DrawImage smt(m_meshData, this);
+#if 0 // ivz - move to main widnget as member
+    static DrawImage smt(m_meshData, this);
+    smt.initializeGL();
+    smt.paintGL();
+#endif
+
 }
 
 void MainWindow::initGeometryTest() {

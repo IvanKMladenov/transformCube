@@ -28,6 +28,7 @@ public slots:
     void setYRotation(int angle);
     void setZRotation(int angle);
     void cleanup();
+    void CallDraw(); // connect to draw button from mainwindow
 public: signals:
     void xRotationChanged(int angle);
     void yRotationChanged(int angle);

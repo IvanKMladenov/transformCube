@@ -33,6 +33,13 @@ DrawImage::~DrawImage() {
     cleanup();
 }
 
+
+//ivz - connect to mainwindow
+void DrawImage::CallDraw()
+{
+    paintGL();
+}
+
 void DrawImage::cleanup() {
     if (m_program == nullptr) {
         return;
@@ -149,7 +156,7 @@ void DrawImage::initializeGL() {
     initializeOpenGLFunctions();
 
     float r, g, b, a = normalize_0_1(255.0f, 1.0f, 255.0f);
-    qColorToRgb(Qt::green, r, g, b);
+    qColorToRgb(Qt::red, r, g, b);
     glClearColor(r, g, b, a);
 
     std::cout << "init shaders" << std::endl;
@@ -221,10 +228,8 @@ void DrawImage::paintGL() {
 
     std::cout << "paintGL" << std::endl;
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
     std::cout << "paintGL enable plane options" << std::endl;
 
     m_world.setToIdentity();

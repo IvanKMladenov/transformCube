@@ -16,4 +16,4 @@ QT += core gui widgets concurrent
 FORMS += \
     mainwindow.ui
 
-LIBS += -lopengl32
+#LIBS += -lopengl32

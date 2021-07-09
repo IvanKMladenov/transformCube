@@ -9,7 +9,7 @@
 //#include "drawimage.h"
 //#include "ui_mainwindow.h"
 
-//class DrawImage;
+class DrawImage;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -54,6 +54,9 @@ private:
     QVector<QVector3D> m_meshData;
     GLshort *m_indexBuf;
     Ui::MainWindow *ui;
+
+
+    DrawImage*  m_pglContext;
 };
 
 #endif // MAINWINDOW_H
