@@ -17,10 +17,12 @@ MainWindow::MainWindow() :
     //initializeOpenGLFunctions();
     //arrayBuf.create();
     //indexBuf.create();
-    //initGeometryTest();
+    initGeometryTest();
 
     m_inputData.resize(8 * sizeof(QVector3D));
-    m_meshData.resize(24 * sizeof(QVector3D));
+    m_meshData.resize(24);
+    std::cout << m_inputData.size() << m_inputData.length() << "m_inputData" << std::endl;
+    std::cout << m_meshData.size() << m_meshData.length() << "m_meshData" << std::endl;
 
     //std::cout << "MainWindow DrawImage c'tor call" << std::endl;
     //DrawImage *glLogic = new DrawImage(m_meshData, this);
@@ -34,14 +36,14 @@ MainWindow::MainWindow() :
     ui ->lineEdit_7 ->installEventFilter(this);
     ui ->lineEdit_8 ->installEventFilter(this);
 
-    ui ->lineEdit_1 ->setText("Enter point e1");
-    ui ->lineEdit_2 ->setText("Enter point e2");
-    ui ->lineEdit_3 ->setText("Enter point e3");
-    ui ->lineEdit_4 ->setText("Enter point e4");
-    ui ->lineEdit_5 ->setText("Enter point e5");
-    ui ->lineEdit_6 ->setText("Enter point e6");
-    ui ->lineEdit_7 ->setText("Enter point e7");
-    ui ->lineEdit_8 ->setText("Enter point e8");
+    //ui ->lineEdit_1 ->setText("Enter point e1");
+    //ui ->lineEdit_2 ->setText("Enter point e2");
+    //ui ->lineEdit_3 ->setText("Enter point e3");
+    //ui ->lineEdit_4 ->setText("Enter point e4");
+    //ui ->lineEdit_5 ->setText("Enter point e5");
+    //ui ->lineEdit_6 ->setText("Enter point e6");
+    //ui ->lineEdit_7 ->setText("Enter point e7");
+    //ui ->lineEdit_8 ->setText("Enter point e8");
 
     std::cout << "MainWindow init LineEdits" << std::endl;
 
@@ -59,7 +61,8 @@ MainWindow::MainWindow() :
     //smtVec = new InputVectors (this);
     //baligo = new DrawImage(this);
     //std::cout << "init InputVectors MainWidget" << smtVec->GetMesh().size() << std::endl;
-    connect( ui ->draw, &QPushButton::pressed, this, &MainWindow::doSomethingStupid);
+    //connect( ui ->draw, &QPushButton::released, this, &MainWindow::doSomethingStupid);
+    connect(ui ->draw, SIGNAL(clicked()), this, SLOT(doSomethingStupid()));
 }
 
 MainWindow::~MainWindow() {
@@ -70,48 +73,76 @@ MainWindow::~MainWindow() {
 
 void MainWindow::doSomethingStupid() {
     std::cout << "doSomethingStupid" << std::endl;
+    //std::cout << m_meshData.size() << m_meshData.length() << "m_meshData" << std::endl;
     //smtVec ->drawGeometry();
-    initGeometryTest();
 
-    for (int i = 0; i < m_meshData.size(); ++i) {
+    for (auto elem = m_meshData.begin(); elem < m_meshData.end(); ++elem) {
         QString bb;
-        &bb << m_meshData[i];
+        std::cout << elem->toPoint().x() << elem->toPoint().y() << std::endl;
+        //QDebug(&bb) << *elem;
         ui ->debugWindow ->setPlainText(bb);
-        std::cout << m_meshData.size() << std::endl;
-        std::cout << m_inputData.size() << std::endl;
+        //std::cout << m_meshData[i] << std::endl;
+        //std::cout << m_inputData.size() << std::endl;
     }
 
-    //DrawImage *glLogic = new DrawImage(m_meshData, this);
-    //std::cout << glLogic ->accessibleName().toStdString() << std::endl;
-    //drawGeometry(&glLogic ->m_program);
-
-    //baligo = new DrawImage(this, this);
-    //std::cout << smtVec->GetMesh().size() << std::endl;
-    //baligo ->DramTheFuckingThing(*smtVec);
+    DrawImage smt(m_meshData, this);
 }
 
 void MainWindow::initGeometryTest() {
+    std::cout << "initGeometryTest" << std::endl;
+    //m_inputData.push_back(QVector3D(-1, -1, 1)); //0
+    //m_inputData.push_back(QVector3D(1, -1, 1)); //1
+    //m_inputData.push_back(QVector3D(-1, 1, 1)); //2
+    //m_inputData.push_back(QVector3D(1, 1, 1)); //3
+    //m_inputData.push_back(QVector3D(1, -1, -1)); //4
+    //m_inputData.push_back(QVector3D(1, 1, -1)); //5
+    //m_inputData.push_back(QVector3D(-1, -1, -1)); //6
+    //m_inputData.push_back(QVector3D(-1, 1, -1)); //7
 
-    m_meshData.push_back(m_inputData[0]);
-    m_meshData.push_back(m_inputData[1]);
-    m_meshData.push_back(m_inputData[2]);
-    m_meshData.push_back(m_inputData[3]);
-    m_meshData.push_back(m_inputData[1]);
-    m_meshData.push_back(m_inputData[4]);
-    m_meshData.push_back(m_inputData[3]);
-    m_meshData.push_back(m_inputData[5]);
-    m_meshData.push_back(m_inputData[4]);
-    m_meshData.push_back(m_inputData[6]);
-    m_meshData.push_back(m_inputData[5]);
-    m_meshData.push_back(m_inputData[7]);
-    m_meshData.push_back(m_inputData[6]);
-    m_meshData.push_back(m_inputData[0]);
-    m_meshData.push_back(m_inputData[7]);
-    m_meshData.push_back(m_inputData[2]);
-    m_meshData.push_back(m_inputData[6]);
-    m_meshData.push_back(m_inputData[4]);
-    m_meshData.push_back(m_inputData[0]);
-    m_meshData.push_back(m_inputData[1]);
+    // Vertex data for face 0
+    m_meshData.push_back(QVector3D(-1.0f, -1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(1.0f, -1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, 1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(1.0f, 1.0f, 1.0f)); //ready
+
+    // Vertex data for face 1
+    m_meshData.push_back(QVector3D(1.0f, -1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(1.0f, -1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(1.0f, 1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(1.0f, 1.0f, -1.0f));   //ready
+
+    // Vertex data for face 2
+    m_meshData.push_back(QVector3D(1.0f, -1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, -1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(1.0f, 1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, 1.0f, -1.0f));   //ready
+
+    // Vertex data for face 3
+    m_meshData.push_back(QVector3D(-1.0f, -1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, -1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, 1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, 1.0f, 1.0f));   //ready
+
+    // Vertex data for face 4
+    m_meshData.push_back(QVector3D(-1.0f, -1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(1.0f, -1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, -1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(1.0f, -1.0f, 1.0f));
+
+    // Vertex data for face 5
+    m_meshData.push_back(QVector3D(-1.0f, 1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(1.0f, 1.0f, 1.0f));
+    m_meshData.push_back(QVector3D(-1.0f, 1.0f, -1.0f));
+    m_meshData.push_back(QVector3D(1.0f, 1.0f, -1.0f));
+
+    //GLushort indices[] = {
+    //     0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
+    //     4,  4,  5,  6,  7,  7, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
+    //     8,  8,  9, 10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
+    //    12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
+    //    16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
+    //    20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
+    //};
 }
 
 void MainWindow::initGeometry()
@@ -286,60 +317,79 @@ void MainWindow::drawGeometry(QOpenGLShaderProgram *program)
     glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, nullptr);
 }
 
-void MainWindow::pushMeshVal1() {
-    auto smt = ui ->lineEdit_1 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
+void MainWindow::addData (QVector<QStringRef>& data) {
+    std::cout << "addData" << std::endl;
+    std::cout << data[0].toString().toStdString() << std::endl;
+    std::cout << data[1].toString().toStdString() << std::endl;
+    std::cout << data[2].toString().toStdString() << std::endl;
+
+    QVector3D smtVec(data[0].toFloat(), data[1].toFloat(), data[2].toFloat());
     smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    //m_inputData.push_back(smtVec);
+}
+
+void MainWindow::pushMeshVal1() {
+    std::cout << "pushMeshVal1" << std::endl;
+    if (!ui ->lineEdit_1 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_1 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal2() {
-    auto smt = ui ->lineEdit_2 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal2" << std::endl;
+    if (!ui ->lineEdit_2 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_2 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal3() {
-    auto smt = ui ->lineEdit_3 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal3" << std::endl;
+    if (!ui ->lineEdit_3 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_3 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal4() {
-    auto smt = ui ->lineEdit_4 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal4" << std::endl;
+    if (!ui ->lineEdit_4 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_4 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal5() {
-    auto smt = ui ->lineEdit_5 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal5" << std::endl;
+    if (!ui ->lineEdit_5 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_5 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal6() {
-    auto smt = ui ->lineEdit_6 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal6" << std::endl;
+    if (!ui ->lineEdit_6 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_6 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal7() {
-    auto smt = ui ->lineEdit_7 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal7" << std::endl;
+    if (!ui ->lineEdit_7 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_7 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 void MainWindow::pushMeshVal8() {
-    auto smt = ui ->lineEdit_8 ->text().splitRef(QLatin1Char(','));
-    QVector3D smtVec(smt[0].toFloat(), smt[1].toFloat(), smt[2].toFloat());
-    smtVec.normalize();
-    m_inputData.push_back(smtVec);
+    std::cout << "pushMeshVal8" << std::endl;
+    if (!ui ->lineEdit_8 ->text().isEmpty()) {
+        auto smt = ui ->lineEdit_8 ->text().splitRef(QLatin1Char(','));
+        addData(smt);
+    }
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {

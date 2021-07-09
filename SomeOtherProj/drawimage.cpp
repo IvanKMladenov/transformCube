@@ -18,6 +18,7 @@ DrawImage::DrawImage ( QVector<QVector3D> meshVec, QWidget *parent)
     : QOpenGLWidget (parent),
       m_mesh(meshVec)
 {
+    cleanup();
     m_mesh.resize(24 * sizeof(QVector3D));
     std::cout << "DrawImage c'tor with mesh" << std::endl;
     m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
@@ -148,7 +149,7 @@ void DrawImage::initializeGL() {
     initializeOpenGLFunctions();
 
     float r, g, b, a = normalize_0_1(255.0f, 1.0f, 255.0f);
-    qColorToRgb(Qt::red, r, g, b);
+    qColorToRgb(Qt::green, r, g, b);
     glClearColor(r, g, b, a);
 
     std::cout << "init shaders" << std::endl;
@@ -175,9 +176,19 @@ void DrawImage::initializeGL() {
     // Setup our vertex buffer object.
     m_meshVbo.create();
     m_meshVbo.bind();
-    std::cout << m_mesh.size() << std::endl;
-    m_meshVbo.allocate(m_mesh.constData(), 204 * sizeof(QVector3D));
-    std::cout << m_meshVbo.size() << std::endl;
+    m_meshVbo.allocate(m_mesh.constData(), m_mesh.size() * sizeof(QVector3D));
+
+    GLushort indices[] = {
+         0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
+         4,  4,  5,  6,  7,  7, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
+         8,  8,  9, 10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
+        12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
+        16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
+        20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
+    };
+
+    indexBuf.bind();
+    indexBuf.allocate(indices, 34 * sizeof(GLushort));
 
     // Store the vertex attribute bindings for the program.
     setupVertexAttribs();
@@ -196,13 +207,13 @@ void DrawImage::initializeGL() {
 void DrawImage::setupVertexAttribs()
 {
     m_meshVbo.bind();
-    QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions *f = QOpenGLContext::currentContext() ->functions();
     f ->glEnableVertexAttribArray(0);
-    f ->glEnableVertexAttribArray(1);
+    //f ->glEnableVertexAttribArray(1);
     f ->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
                              nullptr);
-    f ->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
-                             reinterpret_cast<void *>(3 * sizeof(GLfloat)));
+    //f ->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
+    //                         reinterpret_cast<void *>(3 * sizeof(GLfloat)));
     m_meshVbo.release();
 }
 
@@ -236,8 +247,8 @@ void DrawImage::paintGL() {
     std::cout << "paintGL before glDrawArrays" << std::endl;
     std::cout << m_mesh.size() << std::endl;
     if(m_mesh.size() != 0) {
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 24);
-        //glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, nullptr);
+        //glDrawArrays(GL_TRIANGLE_STRIP, 0, 24);
+        glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, &indexBuf);
     }
     m_program ->release();
 }

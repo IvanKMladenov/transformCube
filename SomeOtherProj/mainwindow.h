@@ -6,8 +6,10 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 
-#include "drawimage.h"
+//#include "drawimage.h"
 //#include "ui_mainwindow.h"
+
+//class DrawImage;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,7 +25,7 @@ public:
     void editingFinished (const QString &string);
 
     void drawGeometry(QOpenGLShaderProgram *program);
-    void doSomethingStupid ();
+    void addData (QVector<QStringRef>& data);
 
     const QVector3D *constData() const { return m_meshData.constData(); }
 
@@ -39,6 +41,7 @@ protected slots:
     void pushMeshVal6();
     void pushMeshVal7();
     void pushMeshVal8();
+    void doSomethingStupid ();
 private:
     void initGeometry1Bad();
     void initGeometry();
@@ -49,6 +52,7 @@ private:
 
     QVector<QVector3D> m_inputData;
     QVector<QVector3D> m_meshData;
+    GLshort *m_indexBuf;
     Ui::MainWindow *ui;
 };
 

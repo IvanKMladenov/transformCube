@@ -28,7 +28,7 @@ public slots:
     void setYRotation(int angle);
     void setZRotation(int angle);
     void cleanup();
-signals:
+public: signals:
     void xRotationChanged(int angle);
     void yRotationChanged(int angle);
     void zRotationChanged(int angle);
@@ -59,6 +59,8 @@ private:
     QVector<QVector3D> m_mesh;
 
     QOpenGLBuffer m_meshVbo;
+    QOpenGLBuffer indexBuf;
+
     QOpenGLVertexArrayObject m_vao;
 
     QMatrix4x4 m_proj;
