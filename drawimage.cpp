@@ -172,7 +172,7 @@ void DrawImage::initializeGL() {
     // Setup our vertex buffer object.
     m_meshVbo.create();
     m_meshVbo.bind();
-    m_meshVbo.allocate(m_mesh.constData(), m_mesh.size()); //mesh contains vetex data and color data
+    m_meshVbo.allocate(m_mesh.constData(), m_mesh.size() * sizeof(float)); //mesh contains vetex data and color data
 
     //GLushort indices[] = {
     //     0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
@@ -242,7 +242,7 @@ void DrawImage::paintGL() {
     std::cout << "paintGL before glDrawArrays" << std::endl;
     std::cout << m_mesh.size() << std::endl;
     if(m_mesh.size() != 0) {
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_mesh.size());
         //glDrawElements(GL_TRIANGLE_STRIP, m_mesh.size(), GL_UNSIGNED_SHORT, &indexBuf);
     }
     m_program ->release();
