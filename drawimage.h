@@ -21,64 +21,27 @@ public:
     DrawImage(QWidget *parent = nullptr);
     DrawImage(QVector<float> meshVec, QWidget *parent = nullptr);
     ~DrawImage();
-    //void DramTheFuckingThing ();
 public slots:
-    void setXRotation(int angle);
-    void setYRotation(int angle);
-    void setZRotation(int angle);
+    //void setXRotation(int angle);
+    //void setYRotation(int angle);
+    //void setZRotation(int angle);
     void cleanup();
     void CallDraw(); // connect to draw button from mainwindow
-public: signals:
-    void xRotationChanged(int angle);
-    void yRotationChanged(int angle);
-    void zRotationChanged(int angle);
 protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
-
-    void initShaders();
-    void initTextures();
 private:
-    void qColorToRgb(const QColor &C, float &r, float &g, float &b) const;
-    float normalize_0_1(float val, float min, float max) const;
-private:
-    void setupVertexAttribs();
-
-    //new
-    bool m_core;
-
-    int m_xRot = 0;
-    int m_yRot = 0;
-    int m_zRot = 0;
-    //int m_projMatrixLoc = 0;
-    //int m_mvMatrixLoc = 0;
-    //int m_normalMatrixLoc = 0;
-    //int m_lightPosLoc = 0;
-
-    QVector<float> m_mesh;
+    //void createShaders();
+    GLuint initVBO();
+    GLuint initVAO();
 
     QOpenGLBuffer m_meshVbo;
-    QOpenGLBuffer indexBuf;
+    //QOpenGLBuffer indexBuf;
 
     QOpenGLVertexArrayObject m_vao;
 
-    QMatrix4x4 m_proj;
-    QMatrix4x4 m_camera;
-    QMatrix4x4 m_world;
-    //old
-    //QBasicTimer timer;
     QOpenGLShaderProgram *m_program = nullptr;
-    //MainWindow *m_geometries = nullptr;
-
-    //QOpenGLTexture *texture = nullptr;
-
-    QMatrix4x4 projection;
-
-    QVector2D mousePressPosition;
-    QVector3D rotationAxis;
-    qreal angularSpeed = 0;
-    QQuaternion rotation;
 };
 
 #endif // DRAWIMAGE_H

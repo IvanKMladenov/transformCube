@@ -44,15 +44,15 @@ MainWindow::MainWindow() :
     std::cout << "MainWindow connect LineEdits" << std::endl;
 
     initGeometryTest();
-    m_pglContext = new DrawImage(m_data, ui ->openGLWidget);
-    m_pglContext ->setGeometry(ui ->openGLWidget ->x(),
-                               ui ->openGLWidget ->y(),
-                               ui ->openGLWidget ->width() / 2,
-                               ui ->openGLWidget ->height() / 2);
-    m_pglContext ->setMouseTracking(true);
 
 
-    connect(ui ->draw, SIGNAL(clicked()), this->m_pglContext, SLOT(CallDraw()));
+    m_pglContext = ui->openGLWidget; //new DrawImage(this);
+
+
+//    m_pglContext ->setMouseTracking(true);
+
+
+    connect(ui->draw, SIGNAL(clicked()), this->m_pglContext, SLOT(CallDraw()));
 }
 
 MainWindow::~MainWindow() {
@@ -74,20 +74,20 @@ void MainWindow::initGeometryTest() {
 
     const float triangleArray[] = {
         //face1
-        -1.0f, -1.0f, 1.0f, 1.0f,//position
-        1.0f, -1.0f, 1.0f, 1.0f,//position
-        -1.0f, 1.0f, 1.0f, 1.0f,//position
-        1.0f, 1.0f, 1.0f, 1.0f,//position
+        -0.5f, -0.5f, 1.0f,// 1.0f,//position
+        0.5f, -0.5f, 1.0f, //1.0f,//position
+        0.5f, 0.5f, 1.0f, //1.0f,//position
+        -0.5f, 0.5f, 1.0f//, 1.0f//position
         //face2
         //1.0f,   -1.0f,  1.0f, 1.0f,//color
         //1.0f,   -1.0f, -1.0f, 1.0f,//color
         //1.0f,    1.0f,  1.0f, 1.0f,//color
         //1.0f,    1.0f,  -1.0f, 1.0f,//color
         //color1
-        1.0f,    0.5f, 0.0f, 1.0f,//color
-        1.0f,    0.0f, 0.0f, 1.0f,//color
-        1.0f,    1.0f, 0.0f, 1.0f,//color
-        1.0f,    0.0f, 1.0f, 1.0f,//color
+        //1.0f,    0.5f, 0.0f, 1.0f,//color
+        //1.0f,    0.0f, 0.0f, 1.0f,//color
+        //1.0f,    1.0f, 0.0f, 1.0f,//color
+        //1.0f,    0.0f, 1.0f, 1.0f,//color
         //color2
         //1.0f,    0.5f, 0.0f, 1.0f,//color
         //1.0f,    0.0f, 0.0f, 1.0f,//color
@@ -95,7 +95,7 @@ void MainWindow::initGeometryTest() {
         //1.0f,    0.0f, 1.0f, 1.0f//color
     };
 
-    for (int i = 0; i < 32; ++i) {
+    for (int i = 0; i < 12; ++i) {
         m_data.push_back(triangleArray[i]);
     }
 

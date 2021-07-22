@@ -6,20 +6,57 @@
 #include <QCoreApplication>
 #include <math.h>
 
+const float m_mesh[] = {
+    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f, // triangle 1 : end
+    1.0f, 1.0f,-1.0f, // triangle 2 : begin
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f, // triangle 2 : end
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f
+};
+
 DrawImage::DrawImage (QWidget *parent)
     : QOpenGLWidget (parent)
 {
     std::cout << "DrawImage c'tor" << std::endl;
-    m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 }
 
-DrawImage::DrawImage ( QVector<float> meshVec, QWidget *parent)
-    : QOpenGLWidget (parent),
-      m_mesh(meshVec)
-{
-    std::cout << "DrawImage c'tor with mesh" << std::endl;
-    m_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
-}
+//DrawImage::DrawImage ( QVector<float> meshVec, QWidget *parent)
+//    : QOpenGLWidget (parent),
+//      m_mesh(meshVec)
+//{
+//    std::cout << "DrawImage c'tor with mesh" << std::endl;
+//}
 
 DrawImage::~DrawImage() {
     cleanup();
@@ -29,105 +66,47 @@ DrawImage::~DrawImage() {
 //ivz - connect to mainwindow
 void DrawImage::CallDraw()
 {
-    makeCurrent();
+  //  makeCurrent();
     std::cout << "CallDraw" << std::endl;
-    paintGL();
-    doneCurrent();
+    this->paintGL();
 }
 
 void DrawImage::cleanup() {
     if (m_program == nullptr) {
         return;
     }
-    makeCurrent();
+    //makeCurrent();
     m_meshVbo.destroy();
     delete m_program;
     m_program = nullptr;
-    doneCurrent();
+    m_vao.destroy();
+    //doneCurrent();
 }
 
-static void qNormalizeAngle(int &angle) {
-    while (angle < 0)
-        angle += 360 * 16;
-    while (angle > 360 * 16)
-        angle -= 360 * 16;
+static const char* color3= "void main(void) {  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); }; ";
+
+static const char* vertex3 = "attribute vec3 coordinates;\n void main(void) { gl_Position = vec4(coordinates, 1.0) ; \n gl_PointSize = 5.0; }";
+
+GLuint DrawImage::initVBO() {
+    //create vbo
+    GLuint vbo;
+    this->glGenBuffers(1, &vbo);
+    this->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(m_mesh),m_mesh, GL_STATIC_DRAW);
+    return  vbo;
 }
 
-void DrawImage::setXRotation(int angle) {
-    qNormalizeAngle(angle);
-    if (angle != m_xRot) {
-        m_xRot = angle;
-        emit xRotationChanged(angle);
-        update();
-    }
+GLuint DrawImage::initVAO() {
+    m_vao.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+
+    m_meshVbo.bind();
+
+    int coordhnd = this ->glGetAttribLocation(m_program ->programId(), "coordinates");
+    this ->glEnableVertexAttribArray(coordhnd);
+    this ->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    return  0;
 }
-
-void DrawImage::setYRotation(int angle) {
-    qNormalizeAngle(angle);
-    if (angle != m_yRot) {
-        m_yRot = angle;
-        emit yRotationChanged(angle);
-        update();
-    }
-}
-
-void DrawImage::setZRotation(int angle) {
-    qNormalizeAngle(angle);
-    if (angle != m_zRot) {
-        m_zRot = angle;
-        emit zRotationChanged(angle);
-        update();
-    }
-}
-
-static const char* fragmentShader =
-        "#version 330\n"
-        "smooth in vec4 f_Color;\n"
-        "//flat in vec4 f_Color;\n"
-        "out vec4 outputColor;\n"
-        "void main() {\n"
-            "outputColor = f_Color;\n"
-        "}\n";
-
-static const char* vertexShader =
-        "#version 330\n"
-        "layout (location = 0) in vec4 position;\n"
-        "layout (location = 1) in vec4 color;\n"
-        "out vec4 f_Color;\n"
-        "void main() { \n"
-            "gl_Position = position;\n"
-            "f_Color = color;\n"
-        "}\n";
-
-//static const char *vertexShaderSourceCore =
-//    "#version 150\n"
-//    "in vec4 vertex;\n"
-//    "in vec3 normal;\n"
-//    "out vec3 vert;\n"
-//    "out vec3 vertNormal;\n"
-//    "uniform mat4 projMatrix;\n"
-//    "uniform mat4 mvMatrix;\n"
-//    "uniform mat3 normalMatrix;\n"
-//    "void main() {\n"
-//    "   vert = vertex.xyz;\n"
-//    "   vertNormal = normalMatrix * normal;\n"
-//    "   gl_Position = projMatrix * mvMatrix * vertex;\n"
-//    "}\n";
-//
-//static const char *fragmentShaderSourceCore =
-//    "#version 150\n"
-//    "in highp vec3 vert;\n"
-//    "in highp vec3 vertNormal;\n"
-//    "out highp vec4 fragColor;\n"
-//    "uniform highp vec3 lightPos;\n"
-//    "void main() {\n"
-//    "   highp vec3 L = normalize(lightPos - vert);\n"
-//    "   highp float NL = max(dot(normalize(vertNormal), L), 0.0);\n"
-//    "   highp vec3 color = vec3(0.39, 1.0, 0.0);\n"
-//    "   highp vec3 col = clamp(color * 0.2 + color * 0.8 * NL, 0.0, 1.0);\n"
-//    "   fragColor = vec4(col, 1.0);\n"
-//    "}\n";
-//
 
 void DrawImage::initializeGL() {
 
@@ -139,129 +118,98 @@ void DrawImage::initializeGL() {
     // aboutToBeDestroyed() signal, instead of the destructor. The emission of
     // the signal will be followed by an invocation of initializeGL() where we
     // can recreate all resources.
-    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &DrawImage::cleanup);
+ //   connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &DrawImage::cleanup);
 
     std::cout << "initializeGL after connect" << std::endl;
     initializeOpenGLFunctions();
 
-    //float r, g, b, a = normalize_0_1(255.0f, 1.0f, 255.0f);
-    //qColorToRgb(Qt::red, r, g, b);
-    //glClearColor(r, g, b, a);
-
     glClearColor(0.7f, 0.7f, 0.7f, 0.0f);
 
     std::cout << "init shaders" << std::endl;
-    m_program = new QOpenGLShaderProgram;
-    m_program ->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
-    m_program ->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
-    m_program->link();
-    m_program->bind();
+    auto vs = new QOpenGLShader(QOpenGLShader::Vertex);
+    if (vs->compileSourceCode(vertex3)) {
+        std::cout << "vs shader ok\r\n";
+    } else {
+        std::cout << "vs shader failed...\r\n";
+    }
 
-    //m_projMatrixLoc = m_program ->uniformLocation("projMatrix");
-    //m_mvMatrixLoc = m_program ->uniformLocation("mvMatrix");
-    //m_normalMatrixLoc = m_program ->uniformLocation("normalMatrix");
-    //m_lightPosLoc = m_program ->uniformLocation("lightPos");
+    auto ps = new QOpenGLShader(QOpenGLShader::Fragment);;
+    if (ps->compileSourceCode(color3)) {
+        std::cout << "ps shader ok\r\n";
+    } else {
+        std::cout << "ps shader failed...\r\n";
+    }
 
-    // Create a vertex array object. In OpenGL ES 2.0 and OpenGL 2.x
-    // implementations this is optional and support may not be present
-    // at all. Nonetheless the below code works in all cases and makes
-    // sure there is a VAO when one is needed.
-    m_vao.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+    m_program = new QOpenGLShaderProgram(this);
+    if (m_program ->addShader(vs)) {
+        std::cout << "vs shader added ok\r\n";
+    } else {
+        qDebug() << "vs shader not added" << m_program->log();
+    }
 
-    // Setup our vertex buffer object.
-    m_meshVbo.create();
-    m_meshVbo.bind();
-    m_meshVbo.allocate(m_mesh.constData(), m_mesh.size() * sizeof(float)); //mesh contains vetex data and color data
+    if (m_program ->addShader(ps)) {
+        std::cout << "ps shader added ok\r\n";
+    } else {
+        qDebug() << "ps shader not added" << m_program->log();
+    }
+    if (m_program ->link()) {
+        std::cout << "linked vs and ps\r\n";
+    } else {
+        qDebug() << "failed to link ps and vs" << m_program->log();
+    }
 
-    //GLushort indices[] = {
-    //     0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
-    //     4,  4,  5,  6,  7,  7, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
-    //     8,  8,  9, 10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
-    //    12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
-    //    16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
-    //    20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
-    //};
+    if (m_program ->bind()) {
+        qDebug() << "Success biding shader program";
+    }
+
+    auto hndvbo = initVBO();
+//    std::cout << m_meshVbo.size() << "\r\n";
+    //initVAO();
+//    std::cout << m_meshVbo.size() << "\r\n";
+    this->glBindBuffer(GL_ARRAY_BUFFER, hndvbo);
+    int coordhnd = this->glGetAttribLocation(m_program ->programId(), "coordinates");
     //
-    //indexBuf.bind();
-    //indexBuf.allocate(indices, 34 * sizeof(GLushort));
+    this->glVertexAttribPointer(coordhnd, 3, GL_FLOAT, GL_TRUE, 0, 0);
+    this->glEnableVertexAttribArray(coordhnd);
 
-    // Store the vertex attribute bindings for the program.
-    setupVertexAttribs();
-
-    // Our camera never changes in this example.
-    //m_camera.setToIdentity();
-    //m_camera.translate(0, 0, -1);
-
-    // Light position is fixed.
-    //m_program->setUniformValue(m_lightPosLoc, QVector3D(0, 0, 70));
-
-    m_program->release();
-}
-
-void DrawImage::setupVertexAttribs()
-{
-    m_meshVbo.bind();
-    QOpenGLFunctions *f = QOpenGLContext::currentContext() ->functions();
-    f ->glEnableVertexAttribArray(0);   //vertex
-    f ->glEnableVertexAttribArray(1);   //color
-
-    //add the points first and then color
-    f ->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    f ->glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void *)(m_mesh.size() * sizeof(float)));
-    //12*sizeof(float) => 48
-    //48 is the offset position where the color data starts, in the triangle array
-    m_meshVbo.release();
+//    m_program ->release();
 }
 
 void DrawImage::paintGL() {
 
     std::cout << "paintGL" << std::endl;
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    std::cout << "paintGL enable plane options" << std::endl;
+    this->glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+    //int d = this->grabFramebuffer().depth();
+    this->glEnable(GL_DEPTH_TEST);
+    this->glDepthFunc(GL_LESS);
 
-    m_world.setToIdentity();
-    m_world.rotate(180.0f - (m_xRot / 16.0f), 1, 0, 0);
-    m_world.rotate(m_yRot / 16.0f, 0, 1, 0);
-    m_world.rotate(m_zRot / 16.0f, 0, 0, 1);
+    this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    std::cout << "paintGL enable plane options" << std::endl;
+    this->glViewport(0, 0, 200, 200); //this->width(), this->height());
 
-    std::cout << "paintGL set world" << std::endl;
+    //m_world.setToIdentity();
+    //m_world.rotate(180.0f - (m_xRot / 16.0f), 1, 0, 0);
+    //m_world.rotate(m_yRot / 16.0f, 0, 1, 0);
+    //m_world.rotate(m_zRot / 16.0f, 0, 0, 1);
 
-    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
-    m_program->bind();
+    //std::cout << "paintGL set world" << std::endl;
 
-    std::cout << "paintGL bind m_program" << std::endl;
+//    QOpenGLVertexArrayObject::Binder vaoBinder(&m_vao);
+//   m_program ->bind();
 
-    //m_program ->setUniformValue(m_projMatrixLoc, m_proj);
-    //m_program ->setUniformValue(m_mvMatrixLoc, m_camera * m_world);
-    //QMatrix3x3 normalMatrix = m_world.normalMatrix();
-    //m_program ->setUniformValue(m_normalMatrixLoc, normalMatrix);
 
     std::cout << "paintGL before glDrawArrays" << std::endl;
-    std::cout << m_mesh.size() << std::endl;
-    if(m_mesh.size() != 0) {
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, m_mesh.size());
+    //std::cout << m_mesh.size() << std::endl;
+    //if(m_mesh.size() != 0) {
+    this->glDrawArrays(GL_TRIANGLES, 0, 12*3);
         //glDrawElements(GL_TRIANGLE_STRIP, m_mesh.size(), GL_UNSIGNED_SHORT, &indexBuf);
-    }
-    m_program ->release();
+    //}
+   //ivz m_program ->release();
 }
 
 void DrawImage::resizeGL(int w, int h) {
 
     std::cout << "resizeGL" << std::endl;
-    m_proj.setToIdentity();
-    m_proj.perspective(45.0f, GLfloat(w) / h, 0.01f, 100.0f);
-}
-
-void DrawImage::qColorToRgb(const QColor &C, float &r, float &g, float &b) const {
-    r = normalize_0_1(C.red(), 1.0f, 255.0f);
-    g = normalize_0_1(C.green(), 1.0f, 255.0f);
-    b = normalize_0_1(C.blue(), 1.0f, 255.0f);
-}
-
-float DrawImage::normalize_0_1(float val, float min, float max) const
-{
-    return (val - min) / (max - min);
+   // this->glViewport(0, 0, w, h);
 }

@@ -5,7 +5,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
-
+#include <QOpenGLWidget>
 //#include "drawimage.h"
 //#include "ui_mainwindow.h"
 
